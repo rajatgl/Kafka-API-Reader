@@ -6,7 +6,7 @@ import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, Produce
 import org.apache.kafka.common.serialization.{IntegerSerializer, StringSerializer}
 
 object Producer extends App {
-  val topicName = "test-1"
+  val topicName = "Magazines"
 
   val producerProperties = new Properties()
 
@@ -20,11 +20,12 @@ object Producer extends App {
     ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,classOf[StringSerializer].getName
   )
   val producer = new KafkaProducer[Int,String](producerProperties)
-  producer.send(new ProducerRecord[Int,String](topicName,1,"Hello!"))
-  producer.send(new ProducerRecord[Int,String](topicName,2,"Hello!1"))
-  producer.send(new ProducerRecord[Int,String](topicName,3,"Hello!2"))
-  producer.send(new ProducerRecord[Int,String](topicName,4,"Hello!3"))
-  producer.send(new ProducerRecord[Int,String](topicName,5,"Hello!4"))
+
+  var key: Int = 0
+  for(magazine <- utils.Utilities.getMagazines.get){
+    producer.send(new ProducerRecord[Int,String](topicName, key, magazine.toString()))
+    key += 1
+  }
 
   producer.flush()
 

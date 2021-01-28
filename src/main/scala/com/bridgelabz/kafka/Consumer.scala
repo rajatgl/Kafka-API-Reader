@@ -4,11 +4,17 @@ import java.time.Duration
 import java.util
 import java.util.{Date, Properties}
 
+import com.bridgelabz.kafka.database.DbOperations
+import com.bridgelabz.kafka.utils.Utilities.getAttribute
 import org.apache.kafka.clients.consumer.{ConsumerConfig, ConsumerRecords, KafkaConsumer}
 import org.apache.kafka.common.serialization.{IntegerDeserializer, StringDeserializer}
+import spray.json._
+
+import scala.concurrent.Await
+import scala.concurrent.duration.DurationInt
 
 object Consumer extends App {
-  val topicName = "test-1"
+  val topicName = "Magazines"
   val consumerProperties = new Properties
   consumerProperties.setProperty(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, classOf[IntegerDeserializer].getName)
   consumerProperties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, classOf[StringDeserializer].getName)
@@ -29,6 +35,16 @@ object Consumer extends App {
     {
       val consumerRecords = consumerIterator.next()
       println(s"${consumerRecords.key()}: ${consumerRecords.value()}- Found at partition ${consumerRecords.partition()} and offset ${consumerRecords.offset()}")
+
+      val added = DbOperations.add(consumerRecords.value().parseJson)
+      val result = Await.result(added, 60.seconds)
+
+      if(result.isDefined){
+        println(s"${getAttribute("title", result.get)} added to the database.")
+      }
+      else{
+        println("ERROR ADDING TO DB.")
+      }
     }
   }
 }

@@ -31,4 +31,19 @@ object Utilities {
       source.close()
     }
   }
+
+  def getMagazines : Option[Vector[JsValue]] ={
+    val url = "https://app.themitpost.com/magazines"
+    val data = getData(url)
+    if(data.isDefined){
+      val magazines = data.get.asJsObject.fields("data").asInstanceOf[JsArray].elements
+      Option(magazines)
+    }
+    else
+      None
+  }
+
+  def getAttribute(field: String, data: JsValue): JsValue = {
+    data.asJsObject.fields(field)
+  }
 }
